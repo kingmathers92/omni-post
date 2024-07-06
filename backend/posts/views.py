@@ -1,11 +1,12 @@
+from django.shortcuts import render
+import threading
 import requests
 import os
-import json
-from dotenv import load_dotenv
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from datetime import datetime, timedelta
-import time
-
-load_dotenv()
+from .models import Post, Draft
+from .serializers import PostSerializer, DraftSerializer
 
 medium_api_key = os.getenv("MEDIUM_API_KEY")
 medium_base_url = os.getenv("MEDIUM_API_BASE_URL")
@@ -14,13 +15,12 @@ hashnode_base_url = os.getenv("HASHNODE_API_BASE_URL")
 devto_api_key = os.getenv("DEVTO_API_KEY")
 devto_base_url = os.getenv("DEVTO_API_BASE_URL")
 
-def authenticate_user(username, password):
-    # Simple authentication simulation
-    users = {
-        "user1": "password1",
-        "user2": "password2",
-    }
-    return users.get(username) == password
+@api_view(['GET'])
+def list_posts(request):
+    posts = Post.objects.all()
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
+
 
 def post_to_medium(title, content):
     headers = {
@@ -101,60 +101,46 @@ def post_to_devto(title, content):
     else:
         return {"error": response.text}
 
-def save_draft(title, content):
-    draft = {
-        "title": title,
-        "content": content,
-        "timestamp": datetime.now().isoformat()
-    }
-    with open("drafts.json", "a") as f:
-        json.dump(draft, f)
-        f.write("\n")
-    return {"status": "Draft saved"}
-
-def schedule_post(title, content, schedule_time):
-    delay = (schedule_time - datetime.now()).total_seconds()
-    if delay > 0:
-        time.sleep(delay)
-    post_to_all(title, content)
-    return {"status": "Post scheduled"}
-
 def post_to_all(title, content):
     medium_response = post_to_medium(title, content)
-    print("Medium Response:", medium_response)
-
     hashnode_response = post_to_hashnode(title, content)
-    print("Hashnode Response:", hashnode_response)
-
     devto_response = post_to_devto(title, content)
-    print("Dev.to Response:", devto_response)
+    return {
+        "medium": medium_response,
+        "hashnode": hashnode_response,
+        "devto": devto_response,
+    }
 
-def main():
-    username = input("Username: ")
-    password = input("Password: ")
-
-    if not authenticate_user(username, password):
-        print("Authentication failed")
-        return
-
-    print("1. Post now")
-    print("2. Save draft")
-    print("3. Schedule post")
-    choice = input("Choose an option: ")
-
-    title = input("Title: ")
-    content = input("Content (HTML format): ")
-
-    if choice == "1":
-        post_to_all(title, content)
-    elif choice == "2":
-        save_draft(title, content)
-    elif choice == "3":
-        schedule_time_str = input("Schedule time (YYYY-MM-DD HH:MM:SS): ")
-        schedule_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M:%S")
-        schedule_post(title, content, schedule_time)
+@api_view(['POST'])
+def post_content(request):
+    title = request.data.get('title')
+    content = request.data.get('content')
+    platform = request.data.get('platform')
+    if platform == "medium":
+        response = post_to_medium(title, content)
+    elif platform == "hashnode":
+        response = post_to_hashnode(title, content)
+    elif platform == "devto":
+        response = post_to_devto(title, content)
     else:
-        print("Invalid choice")
+        response = {"error": "Invalid platform"}
+    return Response(response)
 
-if __name__ == "__main__":
-    main()
+@api_view(['POST'])
+def save_draft(request):
+    title = request.data.get('title')
+    content = request.data.get('content')
+    draft = Draft.objects.create(title=title, content=content)
+    serializer = DraftSerializer(draft)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+def schedule_post(request):
+    title = request.data.get('title')
+    content = request.data.get('content')
+    schedule_time_str = request.data.get('schedule_time')
+    schedule_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M:%S")
+    delay = (schedule_time - datetime.now()).total_seconds()
+    threading.Timer(delay, post_to_all, [title, content]).start()
+    return Response({"status": "Post scheduled"})
+
