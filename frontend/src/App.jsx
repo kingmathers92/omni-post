@@ -1,6 +1,5 @@
 import { useState } from "react";
 import axios from "axios";
-import "./index.css";
 
 function App() {
   const [title, setTitle] = useState("");
@@ -58,71 +57,90 @@ function App() {
   };
 
   return (
-    <div className="app-container">
-      <header className="app-header">
-        <h1 className="app-title">OmniPost</h1>
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center py-10">
+      <header className="mb-10">
+        <h1 className="text-4xl font-bold text-gray-800">OmniPost</h1>
       </header>
-      <main className="app-main">
-        <section className="form-section">
-          <h2>Create Post</h2>
-          <div className="form-group">
-            <input
-              type="text"
-              placeholder="Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="form-control"
-            />
-          </div>
-          <div className="form-group">
-            <textarea
-              placeholder="Content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              className="form-control"
-            ></textarea>
-          </div>
-          <div className="form-group">
-            <select
-              value={platform}
-              onChange={(e) => setPlatform(e.target.value)}
-              className="form-control"
-            >
-              <option value="">Select Platform</option>
-              <option value="medium">Medium</option>
-              <option value="hashnode">Hashnode</option>
-              <option value="devto">Dev.to</option>
-            </select>
-          </div>
-          <div className="form-group">
-            <button onClick={postContent} className="btn btn-primary">
-              Post
-            </button>
-            <button onClick={saveDraft} className="btn btn-secondary">
-              Save Draft
-            </button>
+      <main className="bg-white shadow-md rounded-lg p-8 w-full max-w-2xl">
+        <section className="mb-8">
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Create Post
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <input
+                type="text"
+                placeholder="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <textarea
+                placeholder="Content"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+              ></textarea>
+            </div>
+            <div>
+              <select
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+              >
+                <option value="">Select Platform</option>
+                <option value="medium">Medium</option>
+                <option value="hashnode">Hashnode</option>
+                <option value="devto">Dev.to</option>
+              </select>
+            </div>
+            <div className="flex space-x-4">
+              <button
+                onClick={postContent}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+              >
+                Post
+              </button>
+              <button
+                onClick={saveDraft}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg"
+              >
+                Save Draft
+              </button>
+            </div>
           </div>
         </section>
-        <section className="schedule-section">
-          <h2>Schedule Post</h2>
-          <div className="form-group">
-            <input
-              type="datetime-local"
-              value={scheduleTime}
-              onChange={(e) => setScheduleTime(e.target.value)}
-              className="form-control"
-            />
-          </div>
-          <div className="form-group">
-            <button onClick={schedulePost} className="btn btn-primary">
-              Schedule Post
-            </button>
+        <section>
+          <h2 className="text-2xl font-semibold text-gray-700 mb-4">
+            Schedule Post
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <input
+                type="datetime-local"
+                value={scheduleTime}
+                onChange={(e) => setScheduleTime(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg"
+              />
+            </div>
+            <div>
+              <button
+                onClick={schedulePost}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg"
+              >
+                Schedule Post
+              </button>
+            </div>
           </div>
         </section>
       </main>
-      <footer className="app-footer">
-        <div className="message">{message}</div>
-      </footer>
+      {message && (
+        <footer className="mt-8 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg">
+          {message}
+        </footer>
+      )}
     </div>
   );
 }
