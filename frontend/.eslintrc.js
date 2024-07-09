@@ -2,7 +2,7 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
-    node: true, // This adds Node.js global variables and Node.js scoping
+    node: true,
   },
   extends: [
     "eslint:recommended",
@@ -18,6 +18,6 @@ module.exports = {
   },
   plugins: ["react", "@typescript-eslint"],
   rules: {
-    "no-undef": "off", // This turns off the rule for undefined variables
+    "no-undef": "off",
   },
 };
