@@ -20,6 +20,7 @@ function App() {
       clearForm();
     } catch (error) {
       setMessage(`Post to ${platform} failed`);
+      console.error(error.response ? error.response.data : error.message);
     }
   };
 
@@ -33,6 +34,7 @@ function App() {
       clearForm();
     } catch (error) {
       setMessage("Saving draft failed");
+      console.error(error.response ? error.response.data : error.message);
     }
   };
 
@@ -41,12 +43,13 @@ function App() {
       await axios.post("http://localhost:8000/api/schedule-post/", {
         title,
         content,
-        schedule_time: scheduleTime,
+        schedule_time: scheduleTime.replace("T", " "), // Ensure the format is correct
       });
       setMessage("Post scheduled successfully");
       clearForm();
     } catch (error) {
       setMessage("Scheduling post failed");
+      console.error(error.response ? error.response.data : error.message);
     }
   };
 
