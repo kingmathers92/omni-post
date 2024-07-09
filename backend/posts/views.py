@@ -21,20 +21,17 @@ def list_posts(request):
     serializer = PostSerializer(posts, many=True)
     return Response(serializer.data)
 
-
 def post_to_medium(title, content):
     headers = {
         "Authorization": f"Bearer {medium_api_key}",
         "Content-Type": "application/json",
     }
-
     data = {
         "title": title,
         "contentFormat": "html",
         "content": content,
         "publishStatus": "public",
     }
-
     response = requests.post(f"{medium_base_url}/posts", json=data, headers=headers)
     if response.status_code == 201:
         return response.json()
@@ -46,7 +43,6 @@ def post_to_hashnode(title, content):
         "Authorization": f"Bearer {hashnode_api_key}",
         "Content-Type": "application/json",
     }
-
     query = """
         mutation CreatePost($title: String!, $content: String!, $tags: [String!]!) {
             createPublicationStory(input: {
@@ -64,19 +60,16 @@ def post_to_hashnode(title, content):
             }
         }
     """
-
     variables = {
         "title": title,
         "content": content,
         "tags": [],
     }
-
     response = requests.post(
         hashnode_base_url,
         json={"query": query, "variables": variables},
         headers=headers
     )
-
     if response.status_code == 200:
         return response.json()
     else:
@@ -87,14 +80,12 @@ def post_to_devto(title, content):
         "Authorization": f"Bearer {devto_api_key}",
         "Content-Type": "application/json",
     }
-
     data = {
         "title": title,
         "body_markdown": content,
         "tags": [],
         "published": True,
     }
-
     response = requests.post(f"{devto_base_url}/articles", json=data, headers=headers)
     if response.status_code == 201:
         return response.json()
@@ -139,8 +130,10 @@ def schedule_post(request):
     title = request.data.get('title')
     content = request.data.get('content')
     schedule_time_str = request.data.get('schedule_time')
-    schedule_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M:%S")
+    try:
+        schedule_time = datetime.strptime(schedule_time_str, "%Y-%m-%d %H:%M:%S")
+    except ValueError:
+        return Response({"error": "Invalid date format. Use '%Y-%m-%d %H:%M:%S'."})
     delay = (schedule_time - datetime.now()).total_seconds()
     threading.Timer(delay, post_to_all, [title, content]).start()
     return Response({"status": "Post scheduled"})
-
